@@ -1,4 +1,3 @@
-
 package com.react;
 
 import com.facebook.react.bridge.Arguments;
@@ -41,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderManager.LoaderCallbacks<Cursor>*/ {
+
     //    private LoaderManager mManager;
     private Cursor smsCursor;
     private Map<Long, String> smsList;
@@ -87,27 +87,32 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
 
             while (cursor != null && cursor.moveToNext()) {
                 boolean matchFilter = true;
-                if (fid > -1)
-                    matchFilter = fid == cursor.getInt(cursor.getColumnIndex("_id"));
-                else if (ftid > -1)
-                    matchFilter = ftid == cursor.getInt(cursor.getColumnIndex("thread_id"));
-                else if (fread > -1)
-                    matchFilter = fread == cursor.getInt(cursor.getColumnIndex("read"));
-                else if (faddress != null && !faddress.isEmpty())
-                    matchFilter = faddress.equals(cursor.getString(cursor.getColumnIndex("address")).trim());
-                else if (fcontent != null && !fcontent.isEmpty())
+                if (fid > -1) {
+                    matchFilter = fid == cursor.getInt(cursor.getColumnIndex("_id")); 
+                }else if (ftid > -1) {
+                    matchFilter = ftid == cursor.getInt(cursor.getColumnIndex("thread_id")); 
+                }else if (fread > -1) {
+                    matchFilter = fread == cursor.getInt(cursor.getColumnIndex("read")); 
+                }else if (faddress != null && !faddress.isEmpty()) {
+                    matchFilter = faddress.equals(cursor.getString(cursor.getColumnIndex("address")).trim()); 
+                }else if (fcontent != null && !fcontent.isEmpty()) {
                     matchFilter = fcontent.equals(cursor.getString(cursor.getColumnIndex("body")).trim());
+                }
 
-                if (fContentRegex != null && !fContentRegex.isEmpty())
+                if (fContentRegex != null && !fContentRegex.isEmpty()) {
                     matchFilter = matchFilter && cursor.getString(cursor.getColumnIndex("body")).matches(fContentRegex);
-                if (maxDate > -1)
+                }
+                if (maxDate > -1) {
                     matchFilter = matchFilter && maxDate >= cursor.getLong(cursor.getColumnIndex("date"));
-                if (minDate > -1)
+                }
+                if (minDate > -1) {
                     matchFilter = matchFilter && minDate <= cursor.getLong(cursor.getColumnIndex("date"));
+                }
                 if (matchFilter) {
                     if (c >= indexFrom) {
-                        if (maxCount > 0 && c >= indexFrom + maxCount)
+                        if (maxCount > 0 && c >= indexFrom + maxCount) {
                             break;
+                        }
                         // Long dateTime = Long.parseLong(cursor.getString(cursor.getColumnIndex("date")));
                         // String message = cursor.getString(cursor.getColumnIndex("body"));
                         JSONObject json;
@@ -136,7 +141,7 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
         int nCol = cur.getColumnCount();
         String[] keys = cur.getColumnNames();
         try {
-            for (int j = 0; j < nCol; j++)
+            for (int j = 0; j < nCol; j++) {
                 switch (cur.getType(j)) {
                     case Cursor.FIELD_TYPE_NULL:
                         json.put(keys[j], null);
@@ -153,6 +158,7 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
                     case Cursor.FIELD_TYPE_BLOB:
                         json.put(keys[j], cur.getBlob(j));
                 }
+            }
         } catch (Exception e) {
             return null;
         }
@@ -172,8 +178,9 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
                 SmsManager sms = SmsManager.getDefault();
                 for (int i = 0; i < n; i++) {
                     String address;
-                    if ((address = addressList.optString(i)).length() > 0)
+                    if ((address = addressList.optString(i)).length() > 0) {
                         sms.sendTextMessage(address, null, text, sentIntent, null);
+                    }
                 }
             } else {
                 PendingIntent sentIntent = PendingIntent.getActivity(mActivity, 0, new Intent("android.intent.action.VIEW"), 0);
@@ -227,10 +234,9 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
 
     }
 
-
     @ReactMethod
     public void autoSend(String phoneNumber, String message, final Callback errorCallback,
-                         final Callback successCallback) {
+            final Callback successCallback) {
 
         cb_autoSend_succ = successCallback;
         cb_autoSend_err = errorCallback;
@@ -241,8 +247,8 @@ public class SmsModule extends ReactContextBaseJavaModule /*implements LoaderMan
             ArrayList<PendingIntent> sentPendingIntents = new ArrayList<PendingIntent>();
             ArrayList<PendingIntent> deliveredPendingIntents = new ArrayList<PendingIntent>();
 
-            PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SENT), 0);
-            PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(DELIVERED), 0);
+            PendingIntent sentPI = PendingIntent.getBroadcast(context, 0, new Intent(SENT), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent deliveredPI = PendingIntent.getBroadcast(context, 0, new Intent(DELIVERED), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
 
             //---when the SMS has been sent---
             context.registerReceiver(new BroadcastReceiver() {
